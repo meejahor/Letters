@@ -9,15 +9,26 @@ import SpriteKit
 import GameplayKit
 
 class Tile: SKShapeNode {
-	init(x: CGFloat, y: CGFloat, size: CGFloat, letter: String) {
+	static var scene: SKScene?
+	static var size: CGFloat?
+	static var cornerSize: CGFloat?
+	
+	static func initialize(scene: SKScene) {
+		Tile.scene = scene
+		Tile.size = scene.size.width / 8
+		Tile.cornerSize = Tile.size! * 0.3
+	}
+	
+	init(x: CGFloat, y: CGFloat, letter: String) {
 		super.init()
-		let cornerSize = size * 0.3;
+		let size = Tile.size!
+		let cornerSize = Tile.cornerSize!
+//		self.position = CGPoint(x: x, y: y)
 		self.path = CGPath(
 			roundedRect: CGRect(x: -size/2, y: -size/2, width: size, height: size),
 			cornerWidth: cornerSize, cornerHeight: cornerSize,
 			transform: nil
 		)
-		self.position = CGPoint(x: x, y: y)
 		self.lineWidth = 5
 		self.strokeColor = SKColor.gray
 		self.fillColor = SKColor.darkGray
@@ -28,18 +39,20 @@ class Tile: SKShapeNode {
 		label.fontSize = 100
 		let scalingFactor = (size * 0.6) / label.frame.height
 		label.fontSize *= scalingFactor
-		label.position = CGPoint(
-			x: self.frame.midX,
-			y: self.frame.midY
-		)
+//		label.position = CGPoint(
+//			x: 0,
+//			y: self.frame.midY
+//		)
 		label.horizontalAlignmentMode = .center
 		label.verticalAlignmentMode = .center
 		self.addChild(label)
 
-		self.run(SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(Double.pi), duration: 1)))
+//		self.run(SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(Double.pi), duration: 1)))
 //		self.run(SKAction.sequence([SKAction.wait(forDuration: 0.5),
 //										  SKAction.fadeOut(withDuration: 0.5),
 //										  SKAction.removeFromParent()]))
+
+		Tile.scene!.addChild(self)
 	}
 	
 	required init?(coder aDecoder: NSCoder) {
@@ -48,14 +61,11 @@ class Tile: SKShapeNode {
 }
 
 class GameScene: SKScene {
-    
-
 
     override func didMove(to view: SKView) {
 
-		let size = self.size.width / 8
-		let tile = Tile(x: self.frame.midX, y: self.frame.midY*0.5, size: size,letter: "A")
-		self.addChild(tile)
+		Tile.initialize(scene: self)
+		Tile(x: self.frame.midX, y: self.frame.midY*0.5, letter: "A")
 
 //        // Get label node from scene and store it for use later
 //        self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
