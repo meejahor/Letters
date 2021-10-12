@@ -58,14 +58,36 @@ class GameScene: SKScene {
 //            self.addChild(n)
 //        }
 //    }
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-//        if let label = self.label {
-//            label.run(SKAction.init(named: "Pulse")!, withKey: "fadeInOut")
-//        }
 
-        for t in touches { self.touchDown(atPoint: t.location(in: self)) }
-    }
+	override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+		guard let touch = touches.first else {
+			 return
+		}
+		
+		let touchPosition = touch.location(in: self)
+		let touchedNodes = nodes(at: touchPosition)
+
+		for n in touchedNodes {
+			if n is Tile {
+				n.run(SKAction.sequence([
+					SKAction.group([
+						SKAction.scale(by: 1.5, duration: 0.2),
+						SKAction.fadeOut(withDuration: 0.2)
+					]),
+					SKAction.removeFromParent()
+				]))
+				return
+			}
+		}
+	}
+
+//    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+////        if let label = self.label {
+////            label.run(SKAction.init(named: "Pulse")!, withKey: "fadeInOut")
+////        }
+//
+//        for t in touches { self.touchDown(atPoint: t.location(in: self)) }
+//    }
 //
 //    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
 //        for t in touches { self.touchMoved(toPoint: t.location(in: self)) }

@@ -61,9 +61,6 @@ class Tile: SKShapeNode {
 		self.addChild(label)
 
 //		self.run(SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(Double.pi), duration: 1)))
-//		self.run(SKAction.sequence([SKAction.wait(forDuration: 0.5),
-//										  SKAction.fadeOut(withDuration: 0.5),
-//										  SKAction.removeFromParent()]))
 
 		Tile.scene!.addChild(self)
 	}
