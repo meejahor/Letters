@@ -8,64 +8,24 @@
 import SpriteKit
 import GameplayKit
 
-class Tile: SKShapeNode {
-	static var scene: SKScene?
-	static var size: CGFloat?
-	static var cornerSize: CGFloat?
-	
-	static func initialize(scene: SKScene) {
-		Tile.scene = scene
-		Tile.size = scene.size.width / 8
-		Tile.cornerSize = Tile.size! * 0.3
-	}
-	
-	init(x: CGFloat, y: CGFloat, letter: String) {
-		super.init()
-		let size = Tile.size!
-		let cornerSize = Tile.cornerSize!
-//		self.position = CGPoint(x: x, y: y)
-		self.path = CGPath(
-			roundedRect: CGRect(x: -size/2, y: -size/2, width: size, height: size),
-			cornerWidth: cornerSize, cornerHeight: cornerSize,
-			transform: nil
-		)
-		self.lineWidth = 5
-		self.strokeColor = SKColor.gray
-		self.fillColor = SKColor.darkGray
-
-		let label = SKLabelNode.init(text: letter)
-		label.text = letter
-		label.fontName = "ArialRoundedMTBold"
-		label.fontSize = 100
-		let scalingFactor = (size * 0.6) / label.frame.height
-		label.fontSize *= scalingFactor
-//		label.position = CGPoint(
-//			x: 0,
-//			y: self.frame.midY
-//		)
-		label.horizontalAlignmentMode = .center
-		label.verticalAlignmentMode = .center
-		self.addChild(label)
-
-//		self.run(SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(Double.pi), duration: 1)))
-//		self.run(SKAction.sequence([SKAction.wait(forDuration: 0.5),
-//										  SKAction.fadeOut(withDuration: 0.5),
-//										  SKAction.removeFromParent()]))
-
-		Tile.scene!.addChild(self)
-	}
-	
-	required init?(coder aDecoder: NSCoder) {
-		fatalError("init(coder:) has not been implemented")
-	}
-}
-
 class GameScene: SKScene {
 
     override func didMove(to view: SKView) {
 
 		Tile.initialize(scene: self)
-		Tile(x: self.frame.midX, y: self.frame.midY*0.5, letter: "A")
+		
+		let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKL"
+		var x = 0
+		var y = 0
+		for c in letters {
+			Tile(x: x, y: y, letter: String(c))
+			x = x+1
+			if x == Tile.numTilesAcrossScreen {
+				x = 0
+				y = y+1
+			}
+		}
+		
 
 //        // Get label node from scene and store it for use later
 //        self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
