@@ -20,6 +20,13 @@ class Tile: SKShapeNode {
 	static var cornerSize: CGFloat?
 	static var fontSize: CGFloat?
 	
+	static var moveTime = 0.2
+	static var expandTime = 0.1
+	static var shrinkTime = 0.2
+
+	var targetPosition: CGPoint?
+	var label: SKLabelNode?
+	
 	static func initialize(scene: SKScene) {
 		Tile.scene = scene
 		Tile.size = scene.size.width / CGFloat(gridSize)
@@ -38,8 +45,11 @@ class Tile: SKShapeNode {
 		return p
 	}
 	
-	@discardableResult init(x: Int, y: Int, letter: String) {
+	@discardableResult init(x: Int, y: Int, letter: String, targetPosition: CGPoint? = nil) {
+		self.targetPosition = targetPosition
+		
 		super.init()
+		
 		let innerSize = Tile.innerSize!
 		let cornerSize = Tile.cornerSize!
 		self.path = CGPath(
@@ -52,13 +62,13 @@ class Tile: SKShapeNode {
 		self.strokeColor = SKColor.gray
 		self.fillColor = SKColor.darkGray
 
-		let label = SKLabelNode.init(text: letter)
-		label.text = letter
-		label.fontName = "ArialRoundedMTBold"
-		label.fontSize = Tile.fontSize!
-		label.horizontalAlignmentMode = .center
-		label.verticalAlignmentMode = .center
-		self.addChild(label)
+		label = SKLabelNode.init(text: letter)
+		label!.text = letter
+		label!.fontName = "ArialRoundedMTBold"
+		label!.fontSize = Tile.fontSize!
+		label!.horizontalAlignmentMode = .center
+		label!.verticalAlignmentMode = .center
+		self.addChild(label!)
 
 //		self.run(SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(Double.pi), duration: 1)))
 
@@ -67,5 +77,27 @@ class Tile: SKShapeNode {
 	
 	required init?(coder aDecoder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
+	}
+	
+	func clicked() {
+		if targetPosition != nil {
+			self.run(SKAction.sequence([
+				SKAction.move(to: targetPosition!, duration: Tile.moveTime),
+				SKAction.customAction(withDuration: 0, actionBlock: {_,_ in
+					self.fillColor = UIColor.red
+					self.strokeColor = UIColor.red
+				}),
+				SKAction.scale(by: 2, duration: Tile.expandTime),
+				SKAction.scale(by: 0.5, duration: Tile.shrinkTime),
+			]))
+		} else {
+			self.run(SKAction.sequence([
+				SKAction.group([
+					SKAction.scale(by: 1.5, duration: 0.2),
+					SKAction.fadeOut(withDuration: 0.2)
+				]),
+				SKAction.removeFromParent()
+			]))
+		}
 	}
 }

@@ -12,6 +12,8 @@ class GameScene: SKScene {
 
 //	var grid = [[Tile?](repeating: nil, count: Tile.gridSize)](repeating: nil, count: Tile.gridSize)
 	var grid = Array(repeating: [Tile?](repeating: nil, count: Tile.gridSize), count: Tile.gridSize)
+	
+	static var asciiA = UnicodeScalar("A").value
 
     override func didMove(to view: SKView) {
 
@@ -25,23 +27,63 @@ class GameScene: SKScene {
 			}
 		}
 		
-		var available = [GridLocation]()
-		
+		var availableForNeededLetters = [GridLocation]()
+		var availableForRandomLetters = [GridLocation]()
+
 		for x in 0..<Tile.gridSize {
 			for y in 0..<Tile.gridSize {
-				available.append(GridLocation(x: x, y: y))
+				availableForNeededLetters.append(GridLocation(x: x, y: y))
+				availableForRandomLetters.append(GridLocation(x: x, y: y))
 			}
 		}
 		
 		let word = "EXAMPLE"
-		for c in word {
-			let r = Int.random(in: 0..<available.count)
-			let loc = available[r]
-			available.remove(at: r)
-			let t = Tile(x: loc.x, y: loc.y, letter: String(c))
-			grid[loc.y][loc.x] = t
-		}
 		
+		var wordLeft = self.size.width
+		wordLeft -= Tile.size! * CGFloat(word.count)
+		var x = wordLeft
+		
+		for c in word {
+			let r = Int.random(in: 0..<availableForNeededLetters.count)
+			let loc = availableForNeededLetters[r]
+			
+			availableForNeededLetters.removeAll(where: {
+				(loc.x-1...loc.x+1).contains($0.x) &&
+				(loc.y-1...loc.y+1).contains($0.y)
+			})
+			
+			availableForRandomLetters.removeAll(where: {
+				$0.x == loc.x && $0.y == loc.y
+			})
+
+			let t = Tile(
+				x: loc.x, y: loc.y,
+				letter: String(c),
+				targetPosition: CGPoint(x: x, y: Tile.size!)
+			)
+			grid[loc.y][loc.x] = t
+			
+			x += Tile.size!
+		}
+
+		for _ in 1...3 {
+			x = wordLeft
+			
+			for c in word {
+				let r = Int.random(in: 0..<availableForRandomLetters.count)
+				let loc = availableForRandomLetters[r]
+				availableForRandomLetters.remove(at: r)
+
+				let t = Tile(
+					x: loc.x, y: loc.y,
+					letter: String(c),
+					targetPosition: CGPoint(x: x, y: Tile.size!)
+				)
+				grid[loc.y][loc.x] = t
+
+				x += Tile.size!
+			}
+		}
 
 //        // Get label node from scene and store it for use later
 //        self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
@@ -85,13 +127,7 @@ class GameScene: SKScene {
 
 		for n in touchedNodes {
 			if n is Tile {
-				n.run(SKAction.sequence([
-					SKAction.group([
-						SKAction.scale(by: 1.5, duration: 0.2),
-						SKAction.fadeOut(withDuration: 0.2)
-					]),
-					SKAction.removeFromParent()
-				]))
+				(n as! Tile).clicked()
 				return
 			}
 		}
