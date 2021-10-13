@@ -10,20 +10,36 @@ import GameplayKit
 
 class GameScene: SKScene {
 
+//	var grid = [[Tile?](repeating: nil, count: Tile.gridSize)](repeating: nil, count: Tile.gridSize)
+	var grid = Array(repeating: [Tile?](repeating: nil, count: Tile.gridSize), count: Tile.gridSize)
+
     override func didMove(to view: SKView) {
 
 		Tile.initialize(scene: self)
 		
-		let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKL"
-		var x = 0
-		var y = 0
-		for c in letters {
-			Tile(x: x, y: y, letter: String(c))
-			x = x+1
-			if x == Tile.numTilesAcrossScreen {
-				x = 0
-				y = y+1
+		class GridLocation {
+			var x, y: Int
+			init (x: Int, y: Int) {
+				self.x = x
+				self.y = y
 			}
+		}
+		
+		var available = [GridLocation]()
+		
+		for x in 0..<Tile.gridSize {
+			for y in 0..<Tile.gridSize {
+				available.append(GridLocation(x: x, y: y))
+			}
+		}
+		
+		let word = "EXAMPLE"
+		for c in word {
+			let r = Int.random(in: 0..<available.count)
+			let loc = available[r]
+			available.remove(at: r)
+			let t = Tile(x: loc.x, y: loc.y, letter: String(c))
+			grid[loc.y][loc.x] = t
 		}
 		
 

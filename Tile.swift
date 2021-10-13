@@ -9,7 +9,7 @@ import SpriteKit
 import GameplayKit
 
 class Tile: SKShapeNode {
-	static var numTilesAcrossScreen = 8
+	static var gridSize = 8
 	static var innerSizeScale: CGFloat = 0.8
 	static var cornerScale: CGFloat = 0.3
 	static var borderWidth: CGFloat = 5
@@ -22,7 +22,7 @@ class Tile: SKShapeNode {
 	
 	static func initialize(scene: SKScene) {
 		Tile.scene = scene
-		Tile.size = scene.size.width / CGFloat(numTilesAcrossScreen)
+		Tile.size = scene.size.width / CGFloat(gridSize)
 		Tile.innerSize = Tile.size! * Tile.innerSizeScale
 		Tile.cornerSize = Tile.size! * cornerScale
 		Tile.fontSize = Tile.scene!.frame.width * 0.075
