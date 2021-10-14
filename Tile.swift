@@ -17,12 +17,15 @@ class Tile: SKSpriteNode {
 	static var cornerSize: CGFloat?
 	static var fontSize: CGFloat?
 	
+	static var delayBeforeTileAppears: Double = 0
+	static var delayBetweenEachTileAppearing: Double = 0.025
+
 	static var moveTime = 0.2
 	static var expandTime = 0.1
 	static var shrinkTime = 0.2
 
 	var label: SKLabelNode
-	var letter: String?
+	var letter: String
 	
 	static func initialize(scene: GameScene) {
 		Tile.scene = scene
@@ -46,26 +49,12 @@ class Tile: SKSpriteNode {
 		
 		super.init(
 			texture: SKTexture(imageNamed: "tile"),
-			color: UIColor.white,
+			color: UIColor.init(red: 1, green: 1, blue: 1, alpha: 0),
 			size: CGSize(width: Tile.size!, height: Tile.size!)
 		)
 		
-		self.zPosition = GameScene.Z_TILE
-		
-//		let innerSize = Tile.innerSize!
-//		let cornerSize = Tile.cornerSize!
-		
-//		self.path = CGPath(
-//			roundedRect: CGRect(x: -innerSize/2, y: -innerSize/2, width: innerSize, height: innerSize),
-//			cornerWidth: cornerSize, cornerHeight: cornerSize,
-//			transform: nil
-//		)
-		
 		self.position = Tile.CalcPosition(x: x, y: y)
-
-//		self.lineWidth = Tile.borderWidth
-//		self.strokeColor = SKColor.gray
-//		self.fillColor = SKColor.darkGray
+		self.zPosition = GameScene.Z_TILE
 
 		label.zPosition = GameScene.Z_TILE_LETTER
 		label.text = letter
@@ -75,8 +64,18 @@ class Tile: SKSpriteNode {
 		label.horizontalAlignmentMode = .center
 		label.verticalAlignmentMode = .center
 		self.addChild(label)
-
-//		self.run(SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(Double.pi), duration: 1)))
+		
+		self.run(SKAction.sequence([
+			SKAction.fadeAlpha(to: 0, duration: 0),
+			SKAction.wait(forDuration: Tile.delayBeforeTileAppears),
+			SKAction.group([
+				SKAction.fadeAlpha(to: 1, duration: 0.1),
+				SKAction.scale(by: 1.6, duration: 0.1)
+			]),
+			SKAction.scale(by: 0.625, duration: 0.1),
+		]))
+		
+		Tile.delayBeforeTileAppears += Tile.delayBetweenEachTileAppearing
 
 		Tile.scene!.addChild(self)
 	}
@@ -86,7 +85,7 @@ class Tile: SKSpriteNode {
 	}
 	
 	func clicked() {
-		let targetPosition = Tile.scene!.getPositionOfLetter(c: letter!)
+		let targetPosition = Tile.scene!.getPositionOfLetter(c: letter)
 		
 		if targetPosition != nil {
 			self.run(SKAction.sequence([
