@@ -9,11 +9,25 @@ import SpriteKit
 import GameplayKit
 
 class GameScene: SKScene {
+	
+	static var Z_TILE: CGFloat = 1
+	static var Z_TILE_LETTER: CGFloat = 2
 
 //	var grid = [[Tile?](repeating: nil, count: Tile.gridSize)](repeating: nil, count: Tile.gridSize)
 	var grid = Array(repeating: [Tile?](repeating: nil, count: Tile.gridSize), count: Tile.gridSize)
 	
 	static var asciiA = UnicodeScalar("A").value
+	
+	class Letter {
+		var c: String
+		var x: CGFloat
+		init(c: String, x: CGFloat) {
+			self.c = c
+			self.x = x
+		}
+	}
+	
+	var letters = [Letter]()
 
     override func didMove(to view: SKView) {
 
@@ -39,11 +53,18 @@ class GameScene: SKScene {
 		
 		let word = "EXAMPLE"
 		
-		var wordLeft = self.size.width
-		wordLeft -= Tile.size! * CGFloat(word.count)
-		var x = wordLeft
+		var x = self.size.width
+		x -= Tile.size! * CGFloat(word.count)
+		x *= 0.5
+		x += Tile.size! * 0.5
 		
 		for c in word {
+			let l = Letter(c: String(c), x: x)
+			letters.append(l)
+			x += Tile.size!
+		}
+		
+		for l in letters {
 			let r = Int.random(in: 0..<availableForNeededLetters.count)
 			let loc = availableForNeededLetters[r]
 			
@@ -58,17 +79,13 @@ class GameScene: SKScene {
 
 			let t = Tile(
 				x: loc.x, y: loc.y,
-				letter: String(c),
-				targetPosition: CGPoint(x: x, y: Tile.size!)
+				letter: l.c
 			)
-			grid[loc.y][loc.x] = t
 			
-			x += Tile.size!
+			grid[loc.y][loc.x] = t
 		}
 
 		for _ in 1...3 {
-			x = wordLeft
-			
 			for c in word {
 				let r = Int.random(in: 0..<availableForRandomLetters.count)
 				let loc = availableForRandomLetters[r]
@@ -76,12 +93,10 @@ class GameScene: SKScene {
 
 				let t = Tile(
 					x: loc.x, y: loc.y,
-					letter: String(c),
-					targetPosition: CGPoint(x: x, y: Tile.size!)
+					letter: String(c)
 				)
+				
 				grid[loc.y][loc.x] = t
-
-				x += Tile.size!
 			}
 		}
 
@@ -93,6 +108,15 @@ class GameScene: SKScene {
 //        }
     }
     
+	func getPositionOfLetter(c: String) -> CGPoint? {
+		if let index = letters.firstIndex(where: { $0.c == c }) {
+			let l = letters[index]
+			letters.remove(at: index)
+			return CGPoint(x: l.x, y: Tile.size!)
+		}
+		
+		return nil
+	}
     
     func touchDown(atPoint pos : CGPoint) {
 //        if let n = self.tile?.copy() as! SKShapeNode? {

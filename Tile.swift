@@ -8,13 +8,10 @@
 import SpriteKit
 import GameplayKit
 
-class Tile: SKShapeNode {
+class Tile: SKSpriteNode {
 	static var gridSize = 8
-	static var innerSizeScale: CGFloat = 0.8
-	static var cornerScale: CGFloat = 0.3
-	static var borderWidth: CGFloat = 5
 	
-	static var scene: SKScene?
+	static var scene: GameScene?
 	static var size: CGFloat?
 	static var innerSize: CGFloat?
 	static var cornerSize: CGFloat?
@@ -24,15 +21,13 @@ class Tile: SKShapeNode {
 	static var expandTime = 0.1
 	static var shrinkTime = 0.2
 
-	var targetPosition: CGPoint?
-	var label: SKLabelNode?
+	var label: SKLabelNode
+	var letter: String?
 	
-	static func initialize(scene: SKScene) {
+	static func initialize(scene: GameScene) {
 		Tile.scene = scene
 		Tile.size = scene.size.width / CGFloat(gridSize)
-		Tile.innerSize = Tile.size! * Tile.innerSizeScale
-		Tile.cornerSize = Tile.size! * cornerScale
-		Tile.fontSize = Tile.scene!.frame.width * 0.075
+		Tile.fontSize = scene.frame.width * 0.075
 	}
 	
 	static func CalcPosition(x: Int, y: Int) -> CGPoint {
@@ -45,30 +40,41 @@ class Tile: SKShapeNode {
 		return p
 	}
 	
-	@discardableResult init(x: Int, y: Int, letter: String, targetPosition: CGPoint? = nil) {
-		self.targetPosition = targetPosition
-		
-		super.init()
-		
-		let innerSize = Tile.innerSize!
-		let cornerSize = Tile.cornerSize!
-		self.path = CGPath(
-			roundedRect: CGRect(x: -innerSize/2, y: -innerSize/2, width: innerSize, height: innerSize),
-			cornerWidth: cornerSize, cornerHeight: cornerSize,
-			transform: nil
-		)
-		self.position = Tile.CalcPosition(x: x, y: y)
-		self.lineWidth = Tile.borderWidth
-		self.strokeColor = SKColor.gray
-		self.fillColor = SKColor.darkGray
-
+	@discardableResult init(x: Int, y: Int, letter: String) {
+		self.letter = letter
 		label = SKLabelNode.init(text: letter)
-		label!.text = letter
-		label!.fontName = "ArialRoundedMTBold"
-		label!.fontSize = Tile.fontSize!
-		label!.horizontalAlignmentMode = .center
-		label!.verticalAlignmentMode = .center
-		self.addChild(label!)
+		
+		super.init(
+			texture: SKTexture(imageNamed: "tile"),
+			color: UIColor.white,
+			size: CGSize(width: Tile.size!, height: Tile.size!)
+		)
+		
+		self.zPosition = GameScene.Z_TILE
+		
+//		let innerSize = Tile.innerSize!
+//		let cornerSize = Tile.cornerSize!
+		
+//		self.path = CGPath(
+//			roundedRect: CGRect(x: -innerSize/2, y: -innerSize/2, width: innerSize, height: innerSize),
+//			cornerWidth: cornerSize, cornerHeight: cornerSize,
+//			transform: nil
+//		)
+		
+		self.position = Tile.CalcPosition(x: x, y: y)
+
+//		self.lineWidth = Tile.borderWidth
+//		self.strokeColor = SKColor.gray
+//		self.fillColor = SKColor.darkGray
+
+		label.zPosition = GameScene.Z_TILE_LETTER
+		label.text = letter
+		label.fontName = "ArialRoundedMTBold"
+		label.fontSize = Tile.fontSize!
+		label.fontColor = UIColor.black
+		label.horizontalAlignmentMode = .center
+		label.verticalAlignmentMode = .center
+		self.addChild(label)
 
 //		self.run(SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(Double.pi), duration: 1)))
 
@@ -80,13 +86,15 @@ class Tile: SKShapeNode {
 	}
 	
 	func clicked() {
+		let targetPosition = Tile.scene!.getPositionOfLetter(c: letter!)
+		
 		if targetPosition != nil {
 			self.run(SKAction.sequence([
 				SKAction.move(to: targetPosition!, duration: Tile.moveTime),
-				SKAction.customAction(withDuration: 0, actionBlock: {_,_ in
-					self.fillColor = UIColor.red
-					self.strokeColor = UIColor.red
-				}),
+//				SKAction.customAction(withDuration: 0, actionBlock: {_,_ in
+//					self.fillColor = UIColor.red
+//					self.strokeColor = UIColor.red
+//				}),
 				SKAction.scale(by: 2, duration: Tile.expandTime),
 				SKAction.scale(by: 0.5, duration: Tile.shrinkTime),
 			]))
