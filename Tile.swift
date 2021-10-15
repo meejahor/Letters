@@ -13,8 +13,6 @@ class Tile: SKSpriteNode {
 	
 	static var scene: GameScene?
 	static var size: CGFloat?
-	static var innerSize: CGFloat?
-	static var cornerSize: CGFloat?
 	static var fontSize: CGFloat?
 	
 	static var delayBeforeTileAppears: Double = 0
@@ -24,6 +22,7 @@ class Tile: SKSpriteNode {
 	static var expandTime = 0.1
 	static var shrinkTime = 0.2
 
+	var x, y: Int
 	var label: SKLabelNode
 	var letter: String
 	
@@ -33,27 +32,29 @@ class Tile: SKSpriteNode {
 		Tile.fontSize = scene.frame.width * 0.075
 	}
 	
-	static func CalcPosition(x: Int, y: Int) -> CGPoint {
+	func CalcPosition() {
 		var p = CGPoint.zero
 		let size = Tile.size!
-		p.x = size * CGFloat(x)
+		p.x = size * CGFloat(self.x)
 		p.x += size * 0.5
-		p.y = Tile.scene!.frame.height - (size * CGFloat(y))
+		p.y = Tile.scene!.frame.height - (size * CGFloat(self.y))
 		p.y -= size * 0.5
-		return p
+		self.position = p
 	}
 	
 	@discardableResult init(x: Int, y: Int, letter: String) {
+		self.x = x
+		self.y = y
 		self.letter = letter
 		label = SKLabelNode.init(text: letter)
 		
 		super.init(
 			texture: SKTexture(imageNamed: "tile"),
-			color: UIColor.init(red: 1, green: 1, blue: 1, alpha: 0),
+			color: UIColor.white,
 			size: CGSize(width: Tile.size!, height: Tile.size!)
 		)
 		
-		self.position = Tile.CalcPosition(x: x, y: y)
+		self.CalcPosition()
 		self.zPosition = GameScene.Z_TILE
 
 		label.zPosition = GameScene.Z_TILE_LETTER
@@ -90,10 +91,6 @@ class Tile: SKSpriteNode {
 		if targetPosition != nil {
 			self.run(SKAction.sequence([
 				SKAction.move(to: targetPosition!, duration: Tile.moveTime),
-//				SKAction.customAction(withDuration: 0, actionBlock: {_,_ in
-//					self.fillColor = UIColor.red
-//					self.strokeColor = UIColor.red
-//				}),
 				SKAction.scale(by: 2, duration: Tile.expandTime),
 				SKAction.scale(by: 0.5, duration: Tile.shrinkTime),
 			]))
@@ -103,6 +100,30 @@ class Tile: SKSpriteNode {
 					SKAction.scale(by: 1.5, duration: 0.2),
 					SKAction.fadeOut(withDuration: 0.2)
 				]),
+				SKAction.removeFromParent()
+			]))
+		}
+
+		var surrounding = Tile.scene!.grid
+		
+		surrounding.removeAll(where: {
+			$0 == nil
+		})
+
+		surrounding.removeAll(where: {
+			$0!.x < self.x-1 &&
+			$0!.x > self.x+1 &&
+			$0!.y < self.y-1 &&
+			$0!.y > self.y+1
+		})
+		
+		surrounding.removeAll(where: {
+			$0!.x == self.x && $0!.y == self.y
+		})
+		
+		for t in surrounding {
+			t!.run(SKAction.sequence([
+				SKAction.fadeOut(withDuration: 0.2),
 				SKAction.removeFromParent()
 			]))
 		}

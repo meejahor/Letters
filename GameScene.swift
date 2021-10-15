@@ -14,7 +14,7 @@ class GameScene: SKScene {
 	static var Z_TILE_LETTER: CGFloat = 2
 
 //	var grid = [[Tile?](repeating: nil, count: Tile.gridSize)](repeating: nil, count: Tile.gridSize)
-	var grid = Array(repeating: [Tile?](repeating: nil, count: Tile.gridSize), count: Tile.gridSize)
+	var grid = [Tile?](repeating: nil, count: Tile.gridSize * Tile.gridSize)
 	
 	static var asciiA = UnicodeScalar("A").value
 	
@@ -35,14 +35,17 @@ class GameScene: SKScene {
 		
 		class GridLocation {
 			var x, y: Int
-			init (x: Int, y: Int) {
+			var indexInWord: Int?
+			init (x: Int, y: Int, indexInWord: Int? = nil) {
 				self.x = x
 				self.y = y
+				self.indexInWord = indexInWord
 			}
 		}
 		
 		var availableForNeededLetters = [GridLocation]()
 		var availableForRandomLetters = [GridLocation]()
+		var neededLetterPositions = [GridLocation]()
 
 		for x in 0..<Tile.gridSize {
 			for y in 0..<Tile.gridSize {
@@ -64,7 +67,8 @@ class GameScene: SKScene {
 			x += Tile.size!
 		}
 		
-		for l in letters {
+		for index in 0..<letters.count {
+			let l = letters[index]
 			let r = Int.random(in: 0..<availableForNeededLetters.count)
 			let loc = availableForNeededLetters[r]
 			
@@ -82,23 +86,55 @@ class GameScene: SKScene {
 				letter: l.c
 			)
 			
-			grid[loc.y][loc.x] = t
+			grid[loc.y * Tile.gridSize + loc.x] = t
+			
+			let loc2 = GridLocation(x: loc.x, y: loc.y, indexInWord: index)
+			neededLetterPositions.append(loc2)
 		}
-
-		for _ in 1...3 {
-			for c in word {
-				let r = Int.random(in: 0..<availableForRandomLetters.count)
-				let loc = availableForRandomLetters[r]
-				availableForRandomLetters.remove(at: r)
-
-				let t = Tile(
-					x: loc.x, y: loc.y,
-					letter: String(c)
-				)
+		
+		for loc in neededLetterPositions {
+			var surrounding = [GridLocation]()
+			for x in -1...1 {
+				for y in -1...1 {
+					surrounding.append(GridLocation(x: loc.x+x, y: loc.y+y))
+				}
+			}
 				
-				grid[loc.y][loc.x] = t
+			surrounding.removeAll(where: {
+				$0.x < 0 ||
+				$0.x >= Tile.gridSize ||
+				$0.y < 0 ||
+				$0.y >= Tile.gridSize
+			})
+			
+			surrounding.removeAll(where: {
+				$0.x == loc.x && $0.y == loc.y
+			})
+			
+			surrounding.removeAll(where: {
+				grid[$0.y * Tile.gridSize + $0.x] != nil
+			})
+			
+			for sloc in surrounding {
+				let t = Tile(x: sloc.x, y: sloc.y, letter: String(word.randomElement()!))
+				grid[sloc.y * Tile.gridSize + sloc.x] = t
 			}
 		}
+
+//		for _ in 1...3 {
+//			for c in word {
+//				let r = Int.random(in: 0..<availableForRandomLetters.count)
+//				let loc = availableForRandomLetters[r]
+//				availableForRandomLetters.remove(at: r)
+//
+//				let t = Tile(
+//					x: loc.x, y: loc.y,
+//					letter: String(c)
+//				)
+//
+//				grid[loc.y][loc.x] = t
+//			}
+//		}
 
 //        // Get label node from scene and store it for use later
 //        self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
