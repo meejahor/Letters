@@ -12,6 +12,8 @@ class GameScene: SKScene {
 	
 	static var Z_TILE: CGFloat = 1
 	static var Z_TILE_LETTER: CGFloat = 2
+	static var Z_TILE_FRONT: CGFloat = 3
+	static var Z_TILE_LETTER_FRONT: CGFloat = 4
 
 //	var grid = [[Tile?](repeating: nil, count: Tile.gridSize)](repeating: nil, count: Tile.gridSize)
 	var grid = [Tile?](repeating: nil, count: Tile.gridSize * Tile.gridSize)
@@ -94,21 +96,16 @@ class GameScene: SKScene {
 		
 		for loc in neededLetterPositions {
 			var surrounding = [GridLocation]()
-			for x in -1...1 {
-				for y in -1...1 {
-					surrounding.append(GridLocation(x: loc.x+x, y: loc.y+y))
-				}
-			}
-				
+			surrounding.append(GridLocation(x: loc.x-1, y: loc.y))
+			surrounding.append(GridLocation(x: loc.x+1, y: loc.y))
+			surrounding.append(GridLocation(x: loc.x, y: loc.y-1))
+			surrounding.append(GridLocation(x: loc.x, y: loc.y+1))
+
 			surrounding.removeAll(where: {
 				$0.x < 0 ||
 				$0.x >= Tile.gridSize ||
 				$0.y < 0 ||
 				$0.y >= Tile.gridSize
-			})
-			
-			surrounding.removeAll(where: {
-				$0.x == loc.x && $0.y == loc.y
 			})
 			
 			surrounding.removeAll(where: {

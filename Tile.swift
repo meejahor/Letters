@@ -19,8 +19,9 @@ class Tile: SKSpriteNode {
 	static var delayBetweenEachTileAppearing: Double = 0.025
 
 	static var moveTime = 0.2
-	static var expandTime = 0.1
+	static var expandTime = 0.25
 	static var shrinkTime = 0.2
+	static var spin90time = 0.1
 
 	var x, y: Int
 	var label: SKLabelNode
@@ -85,14 +86,53 @@ class Tile: SKSpriteNode {
 		fatalError("init(coder:) has not been implemented")
 	}
 	
+	func spin(x: CGFloat, y: CGFloat, newLetter: String) {
+		self.run(SKAction.sequence([
+			SKAction.group([
+				SKAction.scaleX(to: x, duration: Tile.spin90time),
+				SKAction.scaleY(to: y, duration: Tile.spin90time)
+			]),
+			SKAction.customAction(withDuration: 0, actionBlock: {_,_ in
+				self.letter = newLetter
+				self.label.text = newLetter
+			}),
+			SKAction.group([
+				SKAction.scaleX(to: 1, duration: Tile.spin90time),
+				SKAction.scaleY(to: 1, duration: Tile.spin90time)
+			])
+		]))
+	}
+	
+	func spinNeighbour(xoffset: Int, yoffset: Int, xsize: CGFloat, ysize: CGFloat) {
+		let x = self.x + xoffset
+		
+		if x < 0 { return }
+		if x >= Tile.gridSize { return }
+		
+		let y = self.y + yoffset
+		
+		if y < 0 { return }
+		if y >= Tile.gridSize { return }
+		
+		guard let neighbour = Tile.scene!.grid[y * Tile.gridSize + x] else {
+			return
+		}
+		
+		neighbour.spin(x: xsize, y: ysize, newLetter: letter)
+	}
+	
 	func clicked() {
 		let targetPosition = Tile.scene!.getPositionOfLetter(c: letter)
 		
 		if targetPosition != nil {
+			self.zPosition = GameScene.Z_TILE_FRONT
+			label.zPosition = GameScene.Z_TILE_LETTER_FRONT
 			self.run(SKAction.sequence([
-				SKAction.move(to: targetPosition!, duration: Tile.moveTime),
 				SKAction.scale(by: 2, duration: Tile.expandTime),
-				SKAction.scale(by: 0.5, duration: Tile.shrinkTime),
+				SKAction.group([
+					SKAction.move(to: targetPosition!, duration: Tile.moveTime),
+					SKAction.scale(by: 0.5, duration: Tile.shrinkTime)
+				]),
 			]))
 		} else {
 			self.run(SKAction.sequence([
@@ -104,28 +144,9 @@ class Tile: SKSpriteNode {
 			]))
 		}
 
-		var surrounding = Tile.scene!.grid
-		
-		surrounding.removeAll(where: {
-			$0 == nil
-		})
-
-		surrounding.removeAll(where: {
-			$0!.x < self.x-1 &&
-			$0!.x > self.x+1 &&
-			$0!.y < self.y-1 &&
-			$0!.y > self.y+1
-		})
-		
-		surrounding.removeAll(where: {
-			$0!.x == self.x && $0!.y == self.y
-		})
-		
-		for t in surrounding {
-			t!.run(SKAction.sequence([
-				SKAction.fadeOut(withDuration: 0.2),
-				SKAction.removeFromParent()
-			]))
-		}
+		spinNeighbour(xoffset: -1, yoffset: 0, xsize: 0, ysize: 1);
+		spinNeighbour(xoffset: 1, yoffset: 0, xsize: 0, ysize: 1);
+		spinNeighbour(xoffset: 0, yoffset: -1, xsize: 1, ysize: 0);
+		spinNeighbour(xoffset: 0, yoffset: 1, xsize: 1, ysize: 0);
 	}
 }
